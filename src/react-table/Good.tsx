@@ -48,7 +48,6 @@ type Accessor<A> = ValueOf<{
     Cell?: (val: A[K]) => React.ReactNode
   }
 }>
-
 type Column<A> = Group<A> | Accessor<A>
 
 const toTree = <A,>(col: Column<A>): Tree<Accessor<A>, string> => 'columns' in col

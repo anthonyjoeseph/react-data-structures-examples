@@ -37,10 +37,10 @@ const branchGridInternal = <A, B>(
 )
 
 /**
- * Turns an array of Trees into a grid (2D array), organized by level & excluding leaves.
+ * Turns an array of Trees into a grid (2D array) of its branches's values, organized by level & excluding leaves.
  * 
  * 
- * The total 'numLeaves' of each level should all be equivalent.
+ * The total 'numLeaves' of each level should be equivalent.
  * Elements w/ empty values are used to achieve this.
  * 
  * @example
@@ -48,11 +48,11 @@ const branchGridInternal = <A, B>(
  * const tree: Tree<string, number>[] = [
  *   {
  *     type: 'Branch',
- *     value: 'P1',
+ *     value: 'A1',
  *     children: [
  *       {
  *         type: 'Branch',
- *         value: 'S1',
+ *         value: 'B',
  *         children: [
  *           { type: 'Leaf', value: 1 },
  *           { type: 'Leaf', value: 2 }
@@ -62,7 +62,7 @@ const branchGridInternal = <A, B>(
  *   },
  *   {
  *     type: 'Branch',
- *     value: 'P2',
+ *     value: 'A2',
  *     branches: [
  *       { type: 'Leaf', value: 3 },
  *       { type: 'Leaf', value: 4 }
@@ -71,8 +71,8 @@ const branchGridInternal = <A, B>(
  * ]
  * 
  * const grid: { numLeaves: number; value: O.Option<string> }[][] = [
- *   [ { numLeaves: 2, value: O.some('P1') },  { numLeaves: 2, value: O.some('P2') } ],
- *   [ { numLeaves: 2, value: O.some('S1') }, { numLeaves: 2, value: O.none } ],
+ *   [ { numLeaves: 2, value: O.some('A1') },  { numLeaves: 2, value: O.some('A2') } ],
+ *   [ { numLeaves: 2, value: O.some('B') }, { numLeaves: 2, value: O.none } ],
  * ]
  * 
  * assert.deepStrictEqual(branchGrid(branches), grid)
@@ -86,15 +86,15 @@ export const branchGrid = <A, B>(branches: Tree<A, B>[]) => branchGridInternal(b
  * 
  * const tree: Tree<string, number> = {
  *   type: 'Branch',
- *   value: 'O',
+ *   value: 'A',
  *   children: [
 *      {
 *        type: 'Branch',
-*        value: 'P1',
+*        value: 'B1',
 *        children: [
 *          {
 *            type: 'Branch',
-*            value: 'S1',
+*            value: 'C',
 *            children: [
 *              { type: 'Leaf', value: 1 },
 *              { type: 'Leaf', value: 2 }
@@ -104,7 +104,7 @@ export const branchGrid = <A, B>(branches: Tree<A, B>[]) => branchGridInternal(b
 *      },
 *      {
 *        type: 'Branch',
-*        value: 'P2',
+*        value: 'B2',
 *        branches: [
 *          { type: 'Leaf', value: 3 },
 *          { type: 'Leaf', value: 4 }
