@@ -73,49 +73,30 @@ function Table<A extends object>({ columns, data }: { columns: Column<A>[] ; dat
   )
 }
 
-function App() {
-  const columns: Column<ReturnType<typeof makeData>[number]>[] = React.useMemo(
-    () => [
+type User = ReturnType<typeof makeData>[number]
+const App = () => {
+  const columns = React.useMemo(
+    (): Column<User>[] => [
       {
         Header: 'Name',
         columns: [
-          {
-            Header: 'First Name',
-            accessor: 'firstName',
-          },
-          {
-            Header: 'Last Name',
-            accessor: 'lastName',
-          },
+          { Header: 'First Name', accessor: 'firstName' },
+          { Header: 'Last Name', accessor: 'lastName' },
         ],
       },
       {
         Header: 'Info',
         columns: [
-          {
-            Header: 'Age',
-            accessor: 'age',
-          },
-          {
-            Header: 'Visits',
-            accessor: 'visits',
-          },
-          {
-            Header: 'Status',
-            accessor: 'status',
-          },
-          {
-            Header: 'Profile Progress',
-            accessor: 'progress',
-          },
+          { Header: 'Age', accessor: 'age' },
+          { Header: 'Visits', accessor: 'visits' },
+          { Header: 'Status', accessor: 'status' },
+          { Header: 'Profile Progress', accessor: 'progress' },
         ],
       },
     ],
     []
   )
-
   const data = React.useMemo(() => makeData(20), [])
-
   return (
     <Styles>
       <Table columns={columns} data={data} />

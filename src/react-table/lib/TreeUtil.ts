@@ -2,30 +2,42 @@ import { sum } from 'fp-ts-std/Array';
 import * as A from 'fp-ts/Array';
 import { pipe } from 'fp-ts/function';
 import * as O from 'fp-ts/Option';
-import * as T from 'fp-ts/Tree';
 
-export const isLeaf = <A,>(tree: T.Tree<A>): boolean => tree.forest.length === 0
+export interface Branch<A, B> {
+  type: 'Branch'
+  value: B
+  children: Tree<A, B>[]
+}
 
-export const numLeaves = T.fold((_, bs: Array<number>) => (bs.length === 0 ? 1 : sum(bs)))
+export interface Leaf<A> {
+  type: 'Leaf'
+  value: A
+}
 
-const forestGridByLevelInternal = <A,>(
-  forest: Array<T.Tree<A> | undefined>
-): Array<Array<{ numLeaves: number; value: O.Option<A> }>> => pipe(
-  forest,
-  A.chain((col): Array<T.Tree<A> | undefined> => col ? col.forest : [undefined]),
-  O.fromPredicate(A.some(column => column ? !isLeaf(column) : false)),
-  O.fold(() => A.empty, forestGridByLevelInternal),
+export type Tree<A, B> = Branch<A, B> | Leaf<A>
+
+export const numLeaves = <A, B>(tree: Tree<A, B>): number => tree.type === 'Branch'
+  ? pipe(tree.children, A.map(numLeaves), sum)
+  : 1
+
+const branchGridInternal = <A, B>(
+  branches: Array<Tree<A, B> | { type: 'Empty' }>
+): Array<Array<{ numLeaves: number; value: O.Option<B> }>> => pipe(
+  branches,
+  A.chain((col): Array<Tree<A, B> | { type: 'Empty' }> => col.type === 'Branch' ? col.children : [{ type: "Empty" }]),
+  O.fromPredicate(A.some(column => column.type === 'Branch')),
+  O.fold(() => A.empty, branchGridInternal),
   A.cons(pipe(
-    forest,
-    A.map(node => ({
-      value: pipe(node, O.fromPredicate((c): c is T.Tree<A> => (!!c && !isLeaf(c))), O.map(c => c.value)),
-      numLeaves: node && !isLeaf(node) ? numLeaves(node) : 1
+    branches,
+    A.map((node) => ({
+      value: pipe(node, O.fromPredicate((c): c is Branch<A, B> => c.type === 'Branch'), O.map(c => c.value)),
+      numLeaves: node.type !== 'Empty' ? numLeaves(node) : 1
     }))
   ))
 )
 
 /**
- * Turns a Forest into a grid (2D array), organized by level & excluding leaves.
+ * Turns an array of Trees into a grid (2D array), organized by level & excluding leaves.
  * 
  * 
  * The total 'numLeaves' of each level should all be equivalent.
@@ -33,24 +45,27 @@ const forestGridByLevelInternal = <A,>(
  * 
  * @example
  * 
- * const forest: T.Forest<string> = [
+ * const tree: Tree<string, number>[] = [
  *   {
+ *     type: 'Branch',
  *     value: 'P1',
- *     forest: [
+ *     children: [
  *       {
+ *         type: 'Branch',
  *         value: 'S1',
- *         forest: [
- *           { value: 'Leaf 1', forest: [] },
- *           { value: 'Leaf 2', forest: [] }
+ *         children: [
+ *           { type: 'Leaf', value: 1 },
+ *           { type: 'Leaf', value: 2 }
  *         ]
  *       }
  *     ]
  *   },
  *   {
+ *     type: 'Branch',
  *     value: 'P2',
- *     forest: [
- *       { value: 'Leaf 3', forest: [] },
- *       { value: 'Leaf 4', forest: [] }
+ *     branches: [
+ *       { type: 'Leaf', value: 3 },
+ *       { type: 'Leaf', value: 4 }
  *     ]
  *   }
  * ]
@@ -60,48 +75,48 @@ const forestGridByLevelInternal = <A,>(
  *   [ { numLeaves: 2, value: O.some('S1') }, { numLeaves: 2, value: O.none } ],
  * ]
  * 
- * assert.deepStrictEqual(forestGridByLevel(forest), grid)
+ * assert.deepStrictEqual(branchGrid(branches), grid)
  */
-export const forestGridByLevel = <A,>(forest: T.Forest<A>) => forestGridByLevelInternal(forest)
+export const branchGrid = <A, B>(branches: Tree<A, B>[]) => branchGridInternal(branches)
 
 /**
- * Turns a Forest into an Array of it's leaves.
+ * Turns a Tree into an Array of the values of its leaves
  * 
  * @example
  * 
- * const forest: T.Forest<string> = [
- *   {
- *     value: 'P1',
- *     forest: [
- *       {
- *         value: 'S1',
- *         forest: [
- *           { value: 'Leaf 1', forest: [] },
- *           { value: 'Leaf 2', forest: [] }
- *         ]
- *       }
- *     ]
- *   },
- *   {
- *     value: 'P2',
- *     forest: [
- *       { value: 'Leaf 3', forest: [] },
- *       { value: 'Leaf 4', forest: [] }
- *     ]
- *   }
- * ]
+ * const tree: Tree<string, number> = {
+ *   type: 'Branch',
+ *   value: 'O',
+ *   children: [
+*      {
+*        type: 'Branch',
+*        value: 'P1',
+*        children: [
+*          {
+*            type: 'Branch',
+*            value: 'S1',
+*            children: [
+*              { type: 'Leaf', value: 1 },
+*              { type: 'Leaf', value: 2 }
+*            ]
+*          }
+*        ]
+*      },
+*      {
+*        type: 'Branch',
+*        value: 'P2',
+*        branches: [
+*          { type: 'Leaf', value: 3 },
+*          { type: 'Leaf', value: 4 }
+*        ]
+*      }
+*    ]
+ * }
  * 
- * const leaves: string[] = [
- *   'Leaf 1', 'Leaf 2', 'Leaf 3', 'Leaf 4'
- * ]
+ * const allLeaves: number[] = [1, 2, 3, 4]
  * 
- * assert.deepStrictEqual(forestLeaves(forest), leaves)
+ * assert.deepStrictEqual(leaves(tree), allLeaves)
  */
-export const forestLeaves = <A,>(forest: T.Forest<A>): Array<A> => pipe(
-  forest,
-  A.chain(
-    col => isLeaf(col)
-      ? [col.value]
-      : forestLeaves(col.forest)
-  )
-)
+export const leaves = <A, B>(tree: Tree<A, B>): Array<A> => tree.type === 'Leaf'
+  ? [tree.value]
+  : pipe(tree.children, A.chain(leaves))
