@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import makeData from './lib/makeData'
-import Table, { Column } from './Good'
+import { Table, Column } from './Good'
 
 const Styles = styled.div`
   padding: 1rem;

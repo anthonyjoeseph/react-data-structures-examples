@@ -1,11 +1,9 @@
 import React from 'react';
 import { groupHeaders, accessors } from 'tree-to-grid';
 import { Column } from 'tree-to-grid/dist/column'
-//         ^----- simple version of `Column`
-//    you can extend this interface if you'd like
-//    or you can use react-table's `Column` type
+export { Column };
 
-const Table = <A,>({ data, columns }: { data: A[]; columns: Column<A>[] }) => {
+export const Table = <A,>({ data, columns }: { data: A[]; columns: Column<A>[] }) => {
   const allAccessors = columns.flatMap(accessors)
   return (
     <table>
@@ -32,52 +30,4 @@ const Table = <A,>({ data, columns }: { data: A[]; columns: Column<A>[] }) => {
       </tbody>
     </table>
   )
-}
-
-interface User {
-  firstName: string
-  lastName: string
-  age: number
-  visits: number
-  status: string
-  progress: string
-}
-export const App = () => {
-  const columns: Column<User>[] = [
-    {
-      Header: 'Name',
-      columns: [
-        { Header: 'First Name', accessor: 'firstName' },
-        { Header: 'Last Name', accessor: 'lastName' },
-      ],
-    },
-    {
-      Header: 'Info',
-      columns: [
-        { Header: 'Age', accessor: 'age' },
-        { Header: 'Visits', accessor: 'visits' },
-        { Header: 'Status', accessor: 'status' },
-        { Header: 'Profile Progress', accessor: 'progress' },
-      ],
-    },
-  ]
-  const data: User[] = [
-    {
-      firstName: 'Anthony',
-      lastName: 'Gabriele',
-      age: 27,
-      visits: 23,
-      status: 'waiting',
-      progress: 'humble'
-    },
-    {
-      firstName: 'Oleg',
-      lastName: 'Kiselyov',
-      age: 30,
-      visits: 5,
-      status: 'waiting',
-      progress: 'advanced'
-    }
-  ]
-  return <Table columns={columns} data={data} />
 }

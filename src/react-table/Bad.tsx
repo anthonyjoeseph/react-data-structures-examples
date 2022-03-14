@@ -1,9 +1,9 @@
 import React from 'react'
-import { Column as RTColumn, useTable } from 'react-table'
+import { Column , useTable } from 'react-table'
 
-export type Column<A extends object> = RTColumn<A>
+export { Column }
 
-function Table<A extends object>({ columns, data }: { columns: Column<A>[] ; data: A[] }) {
+export function Table<A extends object>({ columns, data }: { columns: Column<A>[] ; data: A[] }) {
   // Use the state and functions returned from useTable to build your UI
   const {
     getTableProps,
@@ -29,7 +29,7 @@ function Table<A extends object>({ columns, data }: { columns: Column<A>[] ; dat
         ))}
       </thead>
       <tbody {...getTableBodyProps()}>
-        {rows.map((row, i) => {
+        {rows.map((row) => {
           prepareRow(row)
           return (
             <tr {...row.getRowProps()}>
@@ -43,5 +43,3 @@ function Table<A extends object>({ columns, data }: { columns: Column<A>[] ; dat
     </table>
   )
 }
-
-export default Table
