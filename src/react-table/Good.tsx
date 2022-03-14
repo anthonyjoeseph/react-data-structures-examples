@@ -1,87 +1,31 @@
-import { identity, pipe } from 'fp-ts/function';
-import * as O from 'fp-ts/Option';
-import * as A from 'fp-ts/Array'
 import React from 'react';
-import styled from 'styled-components';
-import makeData from './lib/makeData';
-import { Tree, branchGrid, leaves } from './lib/TreeUtil';
-
-const Styles = styled.div`
-  padding: 1rem;
-
-  table {
-    border-spacing: 0;
-    border: 1px solid black;
-
-    tr {
-      :last-child {
-        td {
-          border-bottom: 0;
-        }
-      }
-    }
-
-    th,
-    td {
-      margin: 0;
-      padding: 0.5rem;
-      border-bottom: 1px solid black;
-      border-right: 1px solid black;
-
-      :last-child {
-        border-right: 0;
-      }
-    }
-  }
-`
-
-type ValueOf<A> = A[keyof A]
-
-interface Group<A> {
-  Header: string
-  columns: Column<A>[]
-}
-type Accessor<A> = ValueOf<{
-  [K in keyof A]: {
-    Header: string
-    accessor: K
-    Cell?: (val: A[K]) => React.ReactNode
-  }
-}>
-type Column<A> = Group<A> | Accessor<A>
-
-const toTree = <A,>(col: Column<A>): Tree<Accessor<A>, string> => 'columns' in col
-  ? {
-    type: 'Branch',
-    value: col.Header,
-    children: col.columns.map(toTree)
-  }
-  : {
-    type: 'Leaf',
-    value: col
-  }
+import { groupHeaders, accessors } from 'tree-to-grid';
+import { Column } from 'tree-to-grid/dist/column'
+//         ^----- simple version of `Column`
+//    you can extend this interface if you'd like
+//    or you can use react-table's `Column` type
 
 const Table = <A,>({ data, columns }: { data: A[]; columns: Column<A>[] }) => {
-  const accessors = pipe(columns, A.map(toTree), A.chain(leaves))
+  const allAccessors = columns.flatMap(accessors)
   return (
     <table>
       <thead>
-        {branchGrid(columns.map(toTree)).map(headerGroup => (
+        {groupHeaders(columns).map(headerGroup => (
           <tr>
-            {headerGroup.map(({ value, numLeaves }) => (
-              <th colSpan={numLeaves}>{pipe(value, O.toUndefined)}</th>
+            {headerGroup.map(({ Header, numLeaves }) => (
+              <th colSpan={numLeaves}>{Header}</th>
             ))}
           </tr>
         ))}
         <tr>
-          {accessors.map(({Header}) => <th>{Header}</th>)}
+          {allAccessors.map((a) => <th>{a.Header}</th>)}
         </tr>
       </thead>
       <tbody>
         {data.map(rowData => (
           <tr>
-            {accessors.map(({Cell = identity, accessor}) => (
-              <td>{Cell(rowData[accessor])}</td>
+            {allAccessors.map(({ accessor }) => (
+              <td>{rowData[accessor]}</td>
             ))}
           </tr>
         ))}
@@ -90,35 +34,50 @@ const Table = <A,>({ data, columns }: { data: A[]; columns: Column<A>[] }) => {
   )
 }
 
-type User = ReturnType<typeof makeData>[number]
-const App = () => {
-  const columns = React.useMemo(
-    (): Column<User>[] => [
-      {
-        Header: 'Name',
-        columns: [
-          { Header: 'First Name', accessor: 'firstName' },
-          { Header: 'Last Name', accessor: 'lastName' },
-        ],
-      },
-      {
-        Header: 'Info',
-        columns: [
-          { Header: 'Age', accessor: 'age' },
-          { Header: 'Visits', accessor: 'visits' },
-          { Header: 'Status', accessor: 'status' },
-          { Header: 'Profile Progress', accessor: 'progress' },
-        ],
-      },
-    ],
-    []
-  )
-  const data = React.useMemo(() => makeData(20), [])
-  return (
-    <Styles>
-      <Table columns={columns} data={data} />
-    </Styles>
-  )
+interface User {
+  firstName: string
+  lastName: string
+  age: number
+  visits: number
+  status: string
+  progress: string
 }
-
-export default App
+export const App = () => {
+  const columns: Column<User>[] = [
+    {
+      Header: 'Name',
+      columns: [
+        { Header: 'First Name', accessor: 'firstName' },
+        { Header: 'Last Name', accessor: 'lastName' },
+      ],
+    },
+    {
+      Header: 'Info',
+      columns: [
+        { Header: 'Age', accessor: 'age' },
+        { Header: 'Visits', accessor: 'visits' },
+        { Header: 'Status', accessor: 'status' },
+        { Header: 'Profile Progress', accessor: 'progress' },
+      ],
+    },
+  ]
+  const data: User[] = [
+    {
+      firstName: 'Anthony',
+      lastName: 'Gabriele',
+      age: 27,
+      visits: 23,
+      status: 'waiting',
+      progress: 'humble'
+    },
+    {
+      firstName: 'Oleg',
+      lastName: 'Kiselyov',
+      age: 30,
+      visits: 5,
+      status: 'waiting',
+      progress: 'advanced'
+    }
+  ]
+  return <Table columns={columns} data={data} />
+}

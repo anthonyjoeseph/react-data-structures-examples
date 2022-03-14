@@ -1,6 +1,6 @@
 // index.js
 import React from "react"
 import ReactDOM from "react-dom"
-import ReactTable from "./react-table/Good"
+import Good from "./react-hook-form/Good"
 
-ReactDOM.render(<ReactTable />, document.getElementById("root"))
+ReactDOM.render(<Good />, document.getElementById("root"))
