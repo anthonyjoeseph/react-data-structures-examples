@@ -1,0 +1,4 @@
+spectacles-ts:
+- optimistic update
+- caching
+- pagination
