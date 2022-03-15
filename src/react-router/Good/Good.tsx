@@ -1,6 +1,5 @@
 import React from 'react';
-import { makeMatch } from 'ts-adt/MakeADT'
-import { pipe } from 'fp-ts/function'
+import { makeMatchI, makeMatchPI } from 'ts-adt/MakeADT'
 import { Route, route$ } from './Route';
 import { Link } from './Link';
 import { useObservableEagerState } from 'observable-hooks';
@@ -26,15 +25,13 @@ export default function App() {
           </Link>
         </li>
       </ul>
-      {pipe(
-        location,
-        makeMatch('type')({
+      {makeMatchPI('type')(location)(
+        {
           Home: () => <Home />,
           About: () => <About />,
-          Topics: (l) => <Topics location={l} />,
-          TopicsID: (l) => <Topics location={l} />,
           NotFound: () => <div />,
-        })
+        }, 
+        (l) => <Topics location={l} />
       )}
     </div>
   );
@@ -67,13 +64,10 @@ const Topics = ({
         </Link>
       </li>
     </ul>
-    {pipe(
-      location,
-      makeMatch('type')({
-        Topics: () => <h3>Please select a topic.</h3>,
-        TopicsID: (l) => <Topic topicId={l.id} />
-      })
-    )}
+    {makeMatchI('type')(location)({
+      Topics: () => <h3>Please select a topic.</h3>,
+      TopicsID: (l) => <Topic topicId={l.id} />
+    })}
   </div>
 );
 
