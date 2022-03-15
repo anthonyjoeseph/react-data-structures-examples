@@ -1,7 +1,8 @@
 import * as R from 'fp-ts-routing';
 import { routingFromMatches } from 'fp-ts-routing-adt';
-import { getRoute } from './fp-ts-routing-react';
-
+import { mutablePathname } from './pathname-observable';
+import { pipe, flow } from 'fp-ts/function'
+import * as ro from 'rxjs/operators'
 
 export const { format, parse } = routingFromMatches(
   ['Home', R.end],
@@ -10,8 +11,11 @@ export const { format, parse } = routingFromMatches(
   ['TopicsID', R.lit('topics').then(R.str('id')).then(R.end)],
 )
 
-export const route$ = getRoute({ format, parse })
+const { pathname$, setPathname } = mutablePathname()
 
-export type ParseableLocation = ReturnType<typeof parse>
-export type Location = Exclude<ParseableLocation, { type: "NotFound" }>
+export const route$ = pipe(pathname$, ro.map(parse))
+export const setRoute = flow(format, setPathname)
+
+export type ParseableRoute = ReturnType<typeof parse>
+export type Route = Exclude<ParseableRoute, { type: "NotFound" }>
 

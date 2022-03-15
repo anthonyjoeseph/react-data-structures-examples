@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeMatch } from 'ts-adt/MakeADT'
 import { pipe } from 'fp-ts/function'
-import { Location, route$ } from './Route';
+import { Route, route$ } from './Route';
 import { Link } from './Link';
 import { useObservableEagerState } from 'observable-hooks';
 
@@ -51,7 +51,7 @@ function About() {
 const Topics = ({
   location,
 }: {
-  location: Extract<Location, { type: 'Topics' | 'TopicsID' }>
+  location: Extract<Route, { type: 'Topics' | 'TopicsID' }>
 }) => (
   <div>
     <h2>Topics</h2>
