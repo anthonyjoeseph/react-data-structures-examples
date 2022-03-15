@@ -1,48 +1,42 @@
-import React, { useState } from 'react';
-import Link from './Link';
+import React from 'react';
 import { makeMatch } from 'ts-adt/MakeADT'
 import { pipe } from 'fp-ts/function'
-import { format, parse, ParseableLocation, UpdateLocationContext } from './Route';
-
+import { Location, route$ } from './Route';
+import { Link } from './Link';
+import { useObservableEagerState } from 'observable-hooks';
 
 export default function App() {
-  const [location, setLocation] = useState<ParseableLocation>(parse(window.location.pathname));
-  window.addEventListener('popstate', () => setLocation(parse(window.location.pathname)));
+  const location = useObservableEagerState(route$)
   return (
-    <UpdateLocationContext.Provider value={(newLocation) => {
-      setLocation(newLocation);
-      window.history.pushState(null, '', format(newLocation));
-    }}>
-      <div>
-        <ul>
-          <li>
-            <Link to={{ type: 'Home' }}>
-              Home
-            </Link>
-          </li>
-          <li>
-            <Link to={{ type: 'About' }}>
-              About
-            </Link>
-          </li>
-          <li>
-            <Link to={{ type: 'Topics' }}>
-              Topics
-            </Link>
-          </li>
-        </ul>
-        {pipe(
-          location,
-          makeMatch('type')({
-            Home: () => <Home />,
-            About: () => <About />,
-            Topics: (l) => <Topics location={l} />,
-            TopicsID: (l) => <Topics location={l} />,
-            NotFound: () => <div />,
-          })
-        )}
-      </div>
-    </UpdateLocationContext.Provider>
+    <div>
+      <ul>
+        <li>
+          <Link to={{ type: 'Home' }}>
+            Home
+          </Link>
+        </li>
+        <li>
+          <Link to={{ type: 'About' }}>
+            About
+          </Link>
+        </li>
+        <li>
+          <Link to={{ type: 'Topics' }}>
+            Topics
+          </Link>
+        </li>
+      </ul>
+      {pipe(
+        location,
+        makeMatch('type')({
+          Home: () => <Home />,
+          About: () => <About />,
+          Topics: (l) => <Topics location={l} />,
+          TopicsID: (l) => <Topics location={l} />,
+          NotFound: () => <div />,
+        })
+      )}
+    </div>
   );
 }
 
@@ -57,7 +51,7 @@ function About() {
 const Topics = ({
   location,
 }: {
-  location: Extract<ParseableLocation, { type: 'Topics' | 'TopicsID' }>
+  location: Extract<Location, { type: 'Topics' | 'TopicsID' }>
 }) => (
   <div>
     <h2>Topics</h2>

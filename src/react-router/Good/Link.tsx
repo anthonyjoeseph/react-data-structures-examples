@@ -1,25 +1,20 @@
-import React, { useContext } from 'react';
-import { Location, format, UpdateLocationContext } from './Route';
+import React, { ReactNode } from "react";
+import { format, Location, route$ } from "./Route";
 
-const Link = ({
-  to,
-  children,
-}: {
-  to: Location;
-  children: string;
-}) => {
-  const updateLocation = useContext(UpdateLocationContext)
+type AnchorProps = React.DetailedHTMLProps<React.AnchorHTMLAttributes<HTMLAnchorElement>, HTMLAnchorElement>
+
+export const Link = ({ to, onClick, children, ...props }: { to: Exclude<Location, { type: 'NotFound' }>; children: NonNullable<ReactNode>; } & Omit<AnchorProps, 'href'>) => {
   return (
     <a
+      {...props}
       href={format(to)}
       onClick={(event) => {
         event.preventDefault();
-        updateLocation(to);
+        onClick?.(event)
+        route$.next(to);
       }}
     >
       {children}
     </a>
   )
-};
-
-export default Link;
+}

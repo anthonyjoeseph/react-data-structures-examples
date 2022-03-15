@@ -1,43 +1,22 @@
-import React, { useState, ReactNode, useEffect } from "react";
+import { pipe } from "fp-ts/function";
+import { BehaviorSubject, fromEvent, merge } from 'rxjs';
+import * as ro from 'rxjs/operators'
 
-export const withParserFormatter = <R,>({ 
+export const getRoute = <R,>({ 
   parse, 
   format 
 }: { 
   parse: (r: string) => R; 
   format: (r: R) => string 
-}): {
-  useRoute: () => R;
-  setRoute: (r: Exclude<R, { type: 'NotFound' }>) => void;
-  Link: (props: { to: Exclude<R, { type: 'NotFound' }>; children: NonNullable<ReactNode>; }) => ReactNode
-} => {
-  let listener = (_: R) => {}
-  const setRoute = (newRoute: R) => listener(newRoute)
-  const listenToTrggerUpdate = (callback: (r: R) => void) => {
-    listener = callback
-  }
-  return {
-    useRoute: () => {
-      const [location, setLocation] = useState<R>(parse(window.location.pathname));
-      useEffect(() => {
-        listenToTrggerUpdate(setLocation);
-        window.addEventListener('popstate', () => setLocation(parse(window.location.pathname)));
-      }, [])
-      return location
-    },
-    setRoute,
-    Link: ({ to, children }) => {
-      return (
-        <a
-          href={format(to)}
-          onClick={(event) => {
-            event.preventDefault();
-            setRoute(to);
-          }}
-        >
-          {children}
-        </a>
-      )
-    }
-  }
+}) => {
+  const internal = new BehaviorSubject<R>(parse(window.location.pathname))
+  const external = pipe(
+    fromEvent(window, 'popstate'),
+    ro.map(() => parse(window.location.pathname))
+  ) 
+  pipe(
+    merge(internal, external),
+    ro.tap((newRoute) => window.history.pushState(null, '', format(newRoute)))
+  )
+  return internal;
 }
