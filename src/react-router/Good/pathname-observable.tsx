@@ -1,18 +1,14 @@
 import { BehaviorSubject, fromEvent, merge } from 'rxjs';
-import { map, tap } from 'rxjs/operators'
+import { map } from 'rxjs/operators';
 
 export const mutablePathname = () => {
-  const reroutes = new BehaviorSubject<string>(window.location.pathname)
-  const windowBack = fromEvent(window, 'popstate').pipe(
+  const reroutes = new BehaviorSubject(window.location.pathname)
+  const onPopState = fromEvent(window, 'popstate').pipe(
     map(() => window.location.pathname)
   )
+  reroutes.subscribe((newRoute) => window.history.pushState(null, '', newRoute))
   return {
-    pathname$: merge(
-      windowBack,
-      reroutes.pipe(
-        tap((newRoute) => window.history.pushState(null, '', newRoute))
-      )
-    ),
-    setPathname: (r: string) => reroutes.next(r)
+    pathname$: merge(onPopState, reroutes),
+    setPathname: (r: string) => reroutes.next(r),
   };
 }
